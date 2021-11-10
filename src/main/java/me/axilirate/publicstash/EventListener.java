@@ -132,6 +132,7 @@ public class EventListener implements Listener {
 		}
 		ItemStack itemStack = event.getEntity().getItemStack();
 		stashAddItem(itemStack);
+		event.getEntity().remove();
 	}
 
 	@EventHandler
@@ -143,6 +144,7 @@ public class EventListener implements Listener {
 		}
 		ItemStack itemStack = ((Item) event.getEntity()).getItemStack();
 		stashAddItem(itemStack);
+		event.getEntity().remove();
 	}
 
 	@EventHandler
@@ -154,6 +156,7 @@ public class EventListener implements Listener {
 		}
 		ItemStack itemStack = ((Item) event.getEntity()).getItemStack();
 		stashAddItem(itemStack);
+		event.getEntity().remove();
 	}
 
 	@EventHandler
