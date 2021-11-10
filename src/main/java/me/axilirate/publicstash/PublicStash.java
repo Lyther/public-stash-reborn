@@ -23,9 +23,9 @@ import java.util.HashMap;
 
 public final class PublicStash extends JavaPlugin {
 	public DataManager dataManager = new DataManager(this);
+	private final PublicStash publicStash = this;
 
 	public HashMap<Player, Inventory> playersOpenedStash = new HashMap<>();
-
 	public HashMap<Player, Integer> playersOpenedStashIndex = new HashMap<>();
 
 	public boolean inventoryUpdated = true;
@@ -33,10 +33,14 @@ public final class PublicStash extends JavaPlugin {
 	public int inventorySize = 9;
 	public int stashAmount;
 	public boolean despawnedItemsToStash = true;
+	public boolean combustedItemsToStash = true;
+	public boolean damagedItemsToStash = true;
 	public String stashItemType = "CHEST";
 	public Boolean stashPreview = true;
 	public boolean debugModeEnabled = false;
 	ArrayList<String> disabledDespawnedItemsToStash = new ArrayList<>();
+	ArrayList<String> disabledCombustedItemsToStash = new ArrayList<>();
+	ArrayList<String> disabledDamagedItemsToStash = new ArrayList<>();
 	ArrayList<String> disabledItems = new ArrayList<>();
 	public int autoClearTimeInTicks = 0;
 
@@ -59,6 +63,10 @@ public final class PublicStash extends JavaPlugin {
 		config.addDefault("auto-clear-time-in-ticks", 0);
 		config.addDefault("despawned-items-to-stash", true);
 		config.addDefault("disabled-despawned-items-to-stash", defaultDisabledDespawnedItemsToStash);
+		config.addDefault("combusted-items-to-stash", true);
+		config.addDefault("disabled-combusted-items-to-stash", defaultDisabledItems);
+		config.addDefault("damaged-items-to-stash", true);
+		config.addDefault("disabled-damaged-items-to-stash", defaultDisabledItems);
 		config.addDefault("disabled-items", defaultDisabledItems);
 		config.addDefault("stash-item-type", "CHEST");
 		config.addDefault("stash-preview", true);
@@ -69,12 +77,16 @@ public final class PublicStash extends JavaPlugin {
 
 		stashAmount = config.getInt("stash-amount");
 		despawnedItemsToStash = config.getBoolean("despawned-items-to-stash");
+		combustedItemsToStash = config.getBoolean("combusted-items-to-stash");
+		damagedItemsToStash = config.getBoolean("damaged-items-to-stash");
 		stashItemType = config.getString("stash-item-type");
 		debugModeEnabled = config.getBoolean("debug-mode-enabled");
 		autoClearTimeInTicks = config.getInt("auto-clear-time-in-ticks");
 		stashPreview = config.getBoolean("stash-preview");
 
 		disabledDespawnedItemsToStash = (ArrayList<String>) config.getList("disabled-despawned-items-to-stash");
+		disabledCombustedItemsToStash = (ArrayList<String>) config.getList("disabled-combusted-items-to-stash");
+		disabledDamagedItemsToStash = (ArrayList<String>) config.getList("disabled-damaged-items-to-stash");
 		disabledItems = (ArrayList<String>) config.getList("disabled-items");
 
 		if (stashAmount != 0) {
@@ -82,19 +94,21 @@ public final class PublicStash extends JavaPlugin {
 		}
 
 		if (debugModeEnabled) {
-			System.out.println("Stash amount is set to " + stashAmount);
-			System.out.println("Inventory size is set to " + inventorySize);
-			System.out.println("Disabled despawned items to stash is set to " + disabledDespawnedItemsToStash);
-			System.out.println("Disabled items is set to " + disabledItems);
+			publicStash.getLogger().info("Stash amount is set to " + stashAmount);
+			publicStash.getLogger().info("Inventory size is set to " + inventorySize);
+			publicStash.getLogger().info("Disabled despawned items to stash is set to " + disabledDespawnedItemsToStash);
+			publicStash.getLogger().info("Disabled items is set to " + disabledItems);
 		}
 
 		translationYml.addDefault("default.public-stash-title", "&rPublic Stash");
 		translationYml.addDefault("en_us.public-stash-title", "&rPublic Stash");
+		translationYml.addDefault("zh_cn.public-stash-title", "&r公共仓库");
 		translationYml.addDefault("zh_tw.public-stash-title", "&r公共倉庫");
 		translationYml.addDefault("de_de.public-stash-title", "&rÖffentlicher Vorrat");
 
 		translationYml.addDefault("default.stash-name", "&rStash");
 		translationYml.addDefault("en_us.stash-name", "&rStash");
+		translationYml.addDefault("zh_cn.stash-name", "&r仓库");
 		translationYml.addDefault("zh_tw.stash-name", "&r倉庫");
 		translationYml.addDefault("de_de.stash-name", "&rVorrat");
 
@@ -108,7 +122,7 @@ public final class PublicStash extends JavaPlugin {
 		if (autoClearTimeInTicks > 0) {
 			BukkitTask autoClear = new AutoClear(this).runTaskTimer(this, autoClearTimeInTicks, autoClearTimeInTicks);
 			if (debugModeEnabled) {
-				System.out.println("Auto clear enabled");
+				publicStash.getLogger().info("Auto clear enabled");
 			}
 		}
 	}
@@ -124,7 +138,7 @@ public final class PublicStash extends JavaPlugin {
 		title = ChatColor.translateAlternateColorCodes('&', title);
 
 		if (debugModeEnabled) {
-			System.out.println(player.getName() + " has opened the public stash with the title: " + title);
+			publicStash.getLogger().info(player.getName() + " has opened the public stash with the title: " + title);
 		}
 
 		Inventory publicStashInventory = Bukkit.createInventory(player, inventorySize, title);
@@ -141,7 +155,7 @@ public final class PublicStash extends JavaPlugin {
 		stashTitle = ChatColor.translateAlternateColorCodes('&', stashTitle);
 
 		if (debugModeEnabled) {
-			System.out.println("and with stash title of: " + stashTitle);
+			publicStash.getLogger().info("and with stash title of: " + stashTitle);
 		}
 
 		for (int i = 0; i < stashAmount; i++) {
@@ -204,7 +218,7 @@ public final class PublicStash extends JavaPlugin {
 		inventoryUpdated = true;
 
 		if (debugModeEnabled) {
-			System.out.println("Stash " + stashIndex + " was updated");
+			publicStash.getLogger().info("Stash " + stashIndex + " was updated");
 		}
 	}
 

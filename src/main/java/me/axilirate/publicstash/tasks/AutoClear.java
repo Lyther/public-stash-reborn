@@ -15,7 +15,7 @@ public class AutoClear extends BukkitRunnable {
     @Override
     public void run() {
         if (publicStash.debugModeEnabled) {
-            System.out.println("Cleared stash");
+            publicStash.getLogger().info("Cleared stash");
         }
 
         for (int stashIndex = 0; stashIndex < publicStash.stashAmount; stashIndex++) {

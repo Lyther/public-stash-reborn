@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.axilirate</groupId>
-    <artifactId>publicstash</artifactId>
-    <version>1.3.2</version>
+    <artifactId>publicstashreborn</artifactId>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
-    <name>PublicStash</name>
+    <name>PublicStashReborn</name>
 
     <properties>
         <java.version>1.8</java.version>

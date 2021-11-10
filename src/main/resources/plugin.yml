@@ -1,4 +1,4 @@
-name: PublicStash
+name: PublicStashReborn
 version: ${project.version}
 main: me.axilirate.publicstash.PublicStash
 api-version: 1.17

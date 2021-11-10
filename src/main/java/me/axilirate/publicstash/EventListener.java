@@ -4,9 +4,12 @@ import me.axilirate.publicstash.items.Back;
 import me.axilirate.publicstash.items.Clear;
 import me.axilirate.publicstash.tasks.AutoClear;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
@@ -38,7 +41,7 @@ public class EventListener implements Listener {
 				String itemName = currentItem.getType().toString().toUpperCase();
 				if (publicStash.disabledItems.contains(itemName)) {
 					if (publicStash.debugModeEnabled) {
-						System.out.println("Disabled item on InventoryClickEvent: " + itemName);
+						publicStash.getLogger().info("Disabled item on InventoryClickEvent: " + itemName);
 					}
 					event.setCancelled(true);
 					return;
@@ -101,7 +104,7 @@ public class EventListener implements Listener {
 				String itemName = currentItem.getType().toString().toUpperCase();
 				if (publicStash.disabledItems.contains(itemName)) {
 					if (publicStash.debugModeEnabled) {
-						System.out.println("Disabled item on InventoryDragEvent: " + itemName);
+						publicStash.getLogger().info("Disabled item on InventoryDragEvent: " + itemName);
 					}
 					event.setCancelled(true);
 					return;
@@ -123,15 +126,49 @@ public class EventListener implements Listener {
 
 	@EventHandler
 	public void onItemDespawn(ItemDespawnEvent event) {
-		if (!publicStash.despawnedItemsToStash) {
-			return;
-		}
+		if (!publicStash.despawnedItemsToStash) { return; }
 		if (publicStash.disabledDespawnedItemsToStash.contains(event.getEntity().getItemStack().getType().toString().toUpperCase())) {
 			return;
 		}
-
 		ItemStack itemStack = event.getEntity().getItemStack();
+		stashAddItem(itemStack);
+	}
 
+	@EventHandler
+	public void onEntityCombust(EntityCombustEvent event) {
+		if (!(event.getEntity() instanceof Item)) { return; }
+		if (!publicStash.combustedItemsToStash) { return; }
+		if (publicStash.disabledCombustedItemsToStash.contains(((Item) event.getEntity()).getItemStack().getType().toString().toUpperCase())) {
+			return;
+		}
+		ItemStack itemStack = ((Item) event.getEntity()).getItemStack();
+		stashAddItem(itemStack);
+	}
+
+	@EventHandler
+	public void onEntityDamage(EntityDamageEvent event) {
+		if (!(event.getEntity() instanceof Item)) { return; }
+		if (!publicStash.damagedItemsToStash) { return; }
+		if (publicStash.disabledDamagedItemsToStash.contains(((Item) event.getEntity()).getItemStack().getType().toString().toUpperCase())) {
+			return;
+		}
+		ItemStack itemStack = ((Item) event.getEntity()).getItemStack();
+		stashAddItem(itemStack);
+	}
+
+	@EventHandler
+	public void onInventoryClose(InventoryCloseEvent event) {
+		Player player = (Player) event.getPlayer();
+		if (publicStash.playersOpenedStash.containsKey(player)) {
+			publicStash.playersOpenedStash.remove(player);
+		}
+		if (publicStash.playersOpenedStashIndex.containsKey(player)) {
+			publicStash.playersOpenedStashIndex.remove(player);
+			player.setItemOnCursor(null);
+		}
+	}
+
+	private void stashAddItem(ItemStack itemStack) {
 		for (int stashIndex = 0; stashIndex < publicStash.stashAmount; stashIndex++) {
 			Inventory stashInventory = publicStash.dataManager.getYamlInventory(null, stashIndex);
 			for (int itemIndex = 0; itemIndex < 54; itemIndex++) {
@@ -149,18 +186,6 @@ public class EventListener implements Listener {
 				publicStash.dataManager.setYamlInventory(stashIndex, stashInventory);
 				return;
 			}
-		}
-	}
-
-	@EventHandler
-	public void onInventoryClose(InventoryCloseEvent event) {
-		Player player = (Player) event.getPlayer();
-		if (publicStash.playersOpenedStash.containsKey(player)) {
-			publicStash.playersOpenedStash.remove(player);
-		}
-		if (publicStash.playersOpenedStashIndex.containsKey(player)) {
-			publicStash.playersOpenedStashIndex.remove(player);
-			player.setItemOnCursor(null);
 		}
 	}
 }
